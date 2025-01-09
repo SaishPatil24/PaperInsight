@@ -1,18 +1,19 @@
 # app.py
 import streamlit as st
-import groq
+import os
+from dotenv import load_dotenv
 import arxiv
 from typing import List
 from dataclasses import dataclass
 from datetime import datetime
-import os
-from dotenv import load_dotenv
+import requests
+import json
 
 # Load environment variables
 load_dotenv()
 
 # Get API key from environment variable or use fallback
-GROQ_API_KEY = os.getenv('GROQ_API_KEY', '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')  # Replace with your API key
+GROQ_API_KEY = os.getenv('GROQ_API_KEY', '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')
 
 @dataclass
 class ResearchPaper:
@@ -26,11 +27,14 @@ class ResearchPaper:
 
 class ResearchQASystem:
     def __init__(self):
-        """Initialize with default API key"""
-        # Initialize Groq client with just the API key
-        self.client = groq.Groq(api_key=GROQ_API_KEY)
+        """Initialize the system"""
         self.arxiv_client = arxiv.Client()
         self.paper_cache = {}
+        self.api_url = "https://api.groq.com/v1/chat/completions"
+        self.headers = {
+            "Authorization": f"Bearer {GROQ_API_KEY}",
+            "Content-Type": "application/json"
+        }
 
     def search_papers(self, query: str, max_results: int = 3):
         search = arxiv.Search(
@@ -58,8 +62,8 @@ class ResearchQASystem:
     def _get_llm_response(self, prompt: str, max_retries: int = 3):
         for attempt in range(max_retries):
             try:
-                completion = self.client.chat.completions.create(
-                    messages=[
+                payload = {
+                    "messages": [
                         {
                             "role": "system",
                             "content": "You are a helpful research assistant. Provide clear, accurate answers based on the research papers provided."
@@ -69,11 +73,22 @@ class ResearchQASystem:
                             "content": prompt
                         }
                     ],
-                    model="mixtral-8x7b-32768",
-                    temperature=0.7,
-                    max_tokens=1024
+                    "model": "mixtral-8x7b-32768",
+                    "temperature": 0.7,
+                    "max_tokens": 1024
+                }
+                
+                response = requests.post(
+                    self.api_url,
+                    headers=self.headers,
+                    json=payload
                 )
-                return completion.choices[0].message.content
+                
+                if response.status_code == 200:
+                    return response.json()['choices'][0]['message']['content']
+                else:
+                    raise Exception(f"API request failed with status {response.status_code}: {response.text}")
+                    
             except Exception as e:
                 if attempt == max_retries - 1:
                     return f"Error generating response after {max_retries} attempts: {str(e)}"
