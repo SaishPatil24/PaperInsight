@@ -10,8 +10,6 @@ Real-time Processing: Get answers to your research questions in seconds
 Citation Support: Automatically includes references to source papers
 💻 Usage
 
-Enter your Groq API key in the sidebar
-Input your research topic of interest
 Ask specific questions about the topic
 Get AI-generated answers based on relevant research papers
 
