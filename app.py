@@ -27,7 +27,8 @@ class ResearchPaper:
 class ResearchQASystem:
     def __init__(self):
         """Initialize with default API key"""
-        self.client = groq.Client(api_key=GROQ_API_KEY)
+        # Initialize Groq client with just the API key
+        self.client = groq.Groq(api_key=GROQ_API_KEY)
         self.arxiv_client = arxiv.Client()
         self.paper_cache = {}
 
@@ -57,7 +58,7 @@ class ResearchQASystem:
     def _get_llm_response(self, prompt: str, max_retries: int = 3):
         for attempt in range(max_retries):
             try:
-                chat_completion = self.client.chat.completions.create(
+                completion = self.client.chat.completions.create(
                     messages=[
                         {
                             "role": "system",
@@ -72,7 +73,7 @@ class ResearchQASystem:
                     temperature=0.7,
                     max_tokens=1024
                 )
-                return chat_completion.choices[0].message.content
+                return completion.choices[0].message.content
             except Exception as e:
                 if attempt == max_retries - 1:
                     return f"Error generating response after {max_retries} attempts: {str(e)}"
@@ -115,19 +116,39 @@ class ResearchQASystem:
 
         return response + paper_refs
 
-# Initialize Streamlit interface
-st.title("ScholarQA - Research Paper Assistant")
+# Add page configuration
+st.set_page_config(
+    page_title="ScholarQA - Research Paper Assistant",
+    page_icon="📚",
+    layout="wide"
+)
+
+# Initialize Streamlit interface with some styling
+st.title("📚 ScholarQA - Research Paper Assistant")
+st.markdown("""
+<style>
+    .stTextInput > label {
+        font-size: 20px;
+        font-weight: bold;
+    }
+    .stMarkdown {
+        font-size: 16px;
+    }
+</style>
+""", unsafe_allow_html=True)
 
 # Initialize QA system
 qa_system = ResearchQASystem()
 
 # Main content
+st.markdown("### Start Your Research Journey 🔍")
 research_topic = st.text_input("What research topic are you interested in?")
 
 if research_topic:
     question = st.text_input("What's your question about this topic?")
     
     if question:
-        with st.spinner("Searching and analyzing research papers..."):
+        with st.spinner("🤔 Searching and analyzing research papers..."):
             answer = qa_system.answer_question(question, research_topic)
-            st.write("Answer:", answer)
+            st.markdown("### Answer:")
+            st.write(answer)
