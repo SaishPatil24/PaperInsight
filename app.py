@@ -5,6 +5,14 @@ import arxiv
 from typing import List
 from dataclasses import dataclass
 from datetime import datetime
+import os
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
+
+# Get API key from environment variable or use fallback
+GROQ_API_KEY = os.getenv('GROQ_API_KEY', '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')  # Replace with your API key
 
 @dataclass
 class ResearchPaper:
@@ -17,8 +25,9 @@ class ResearchPaper:
     categories: List[str] = None
 
 class ResearchQASystem:
-    def __init__(self, api_key: str):
-        self.client = groq.Client(api_key=api_key)
+    def __init__(self):
+        """Initialize with default API key"""
+        self.client = groq.Client(api_key=GROQ_API_KEY)
         self.arxiv_client = arxiv.Client()
         self.paper_cache = {}
 
@@ -106,24 +115,19 @@ class ResearchQASystem:
 
         return response + paper_refs
 
-# Streamlit interface
-st.title("Research Paper Q&A System")
+# Initialize Streamlit interface
+st.title("ScholarQA - Research Paper Assistant")
 
-# Sidebar for API key
-api_key = st.sidebar.text_input("Enter your Groq API Key:", type="password")
+# Initialize QA system
+qa_system = ResearchQASystem()
 
-if api_key:
-    qa_system = ResearchQASystem(api_key)
+# Main content
+research_topic = st.text_input("What research topic are you interested in?")
 
-    # Main content
-    research_topic = st.text_input("What research topic are you interested in?")
+if research_topic:
+    question = st.text_input("What's your question about this topic?")
     
-    if research_topic:
-        question = st.text_input("What's your question about this topic?")
-        
-        if question:
-            with st.spinner("Searching and analyzing research papers..."):
-                answer = qa_system.answer_question(question, research_topic)
-                st.write("Answer:", answer)
-else:
-    st.warning("Please enter your Groq API key in the sidebar to start.")
+    if question:
+        with st.spinner("Searching and analyzing research papers..."):
+            answer = qa_system.answer_question(question, research_topic)
+            st.write("Answer:", answer)
