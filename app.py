@@ -13,7 +13,7 @@ import json
 load_dotenv()
 
 # Get API key from environment variable or use fallback
-GROQ_API_KEY = os.getenv('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')
+GROQ_API_KEY = os.getenv("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")
 
 @dataclass
 class ResearchPaper:
