@@ -8,6 +8,9 @@ AI-Powered Analysis: Uses Groq's Mixtral-8x7b model to generate comprehensive an
 User-Friendly Interface: Clean Streamlit web interface for easy interaction
 Real-time Processing: Get answers to your research questions in seconds
 Citation Support: Automatically includes references to source papers
+
+Deploy link: https://paperinsight-9xwfhdneqkkbrfhgqpnl9b.streamlit.app/
+
 💻 Usage
 
 Ask specific questions about the topic
